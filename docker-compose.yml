@@ -1,0 +1,34 @@
+version: '3'
+services:
+  db:
+    image: postgres:latest
+    expose: 
+      - 5432
+    volumes:
+      - "/var/lib/postgresql/data"
+    environment: 
+      POSTGRES_USER: snowman
+      POSTGRES_PASSWORD: Q4mAELAAw1BhZA==
+  solr:
+    image: solr:latest
+    expose:
+      - 8983
+    volumes:
+      - "/opt/solr/server/solr/snowman"
+    entrypoint:
+      - docker-entrypoint.sh
+      - solr-precreate
+      - snowman
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - solr
+    links:
+      - db
+      - solr

@@ -1,0 +1,11 @@
+Django
+psycopg2
+djangorestframework
+django-rest-auth
+django-allauth
+drf-extensions
+markdown
+coreapi
+django-guardian
+drf-haystack
+pysolr
