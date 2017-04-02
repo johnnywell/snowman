@@ -5,6 +5,7 @@ django-rest-auth
 django-allauth
 drf-extensions
 markdown
+pygments
 coreapi
 django-guardian
 drf-haystack
