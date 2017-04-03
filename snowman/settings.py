@@ -47,8 +47,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
     'haystack',
-
-    #snowman apps
+    # snowman apps
     'api',
     'tourpoint'
 
