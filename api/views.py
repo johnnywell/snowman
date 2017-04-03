@@ -55,6 +55,16 @@ class TourPointViewSet(mixins.CreateModelMixin,
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def destroy(self, request, *args, **kwargs):
+        """
+        Allow users to delete their own tour points
+        """
+        instance = self.get_object()
+        if instance.owner == request.user:
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
 
 class UserViewSet(mixins.RetrieveModelMixin, 
                   viewsets.GenericViewSet):
