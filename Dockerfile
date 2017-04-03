@@ -5,6 +5,8 @@ FROM python:latest
 # since the dawn of time.
 ENV PYTHONUNBUFFERED 1
 
+RUN apt-get install -y libgeos-c1
+
 # Copy all our files into the image.
 RUN mkdir /code
 WORKDIR /code

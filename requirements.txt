@@ -7,6 +7,6 @@ drf-extensions
 markdown
 pygments
 coreapi
-django-guardian
 drf-haystack
+geopy
 pysolr

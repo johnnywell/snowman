@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 
     #snowman apps
     'api',
+    'tourpoint'
 
 ]
 
