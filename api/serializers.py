@@ -26,7 +26,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class DistanceSerializer(serializers.Serializer):
     km = serializers.FloatField()
-    m = serializers.FloatField()
 
 
 class TourPointLocationSerializer(HaystackSerializer):
@@ -34,7 +33,7 @@ class TourPointLocationSerializer(HaystackSerializer):
 
     class Meta:
         index_classes = [TourPointLocationIndex]
-        fields = ['name', 'category', 'longitude', 'latitude']
+        fields = ['name', 'category', 'longitude', 'latitude', 'private', 'owner']
 
     def get_distance(self, obj):
         if hasattr(obj, "distance"):

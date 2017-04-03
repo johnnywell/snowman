@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase, force_authenticate
 from allauth.socialaccount.models import SocialApp
 from tourpoint.models import TourPoint
+from api import factories
 
 # class FacebookAuthTests(APITestCase):
 
@@ -44,9 +45,14 @@ class TourPointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_user_can_see_his_tourpoints(self):
+        user = factories.UserFactory.create()
+        for i in range(10):
+            factories.TourPointFactory(owner=user)
+        self.client.force_login(user)
         response = self.client.get(
             reverse('user-tourpoints', args=[self.user.pk]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 10)
 
     def test_user_can_delete_his_own_tourpoints(self):
         data = {
@@ -76,23 +82,29 @@ class TourPointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_anonymous_user_can_see_only_restaurants(self):
-        TourPoint.objects.create(
-            name='Golden Dragon',
-            category='restaurant',
-            longitude=-20.234456,
-            latitude=-49.123890,
-            private=False,
-            owner=self.user
-        )
-        TourPoint.objects.create(
-            name='Tingui Park',
-            category='park',
-            longitude=-21.234456,
-            latitude=-48.123890,
-            private=False,
-            owner=self.user
-        )
+        factories.TourPointFactory.create_batch(10)
         self.client.logout()
         response = self.client.get(reverse('tourpoint-list'))
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['category'], 'restaurant')
+        for tourpoint in response.data:
+            self.assertEqual(tourpoint['category'], 'restaurant')
+
+    def test_user_can_see_tour_points_in_a_radius_from_location(self):
+        factories.TourPointFactory.create_batch(size=10)
+        user = factories.UserFactory.create()
+        self.client.force_login(user)
+        response = self.client.get(reverse('tourpoint-search-list'), {
+            'from': '-25.4283699,-49.2790737',
+            'km': 5.0})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(len(response.data), 0)
+
+    def test_anonymous_user_may_only_see_public_restaurants_in_a_radius_from_location(self):
+        factories.TourPointFactory.create_batch(size=20)
+        self.client.logout()
+        response = self.client.get(reverse('tourpoint-search-list'), {
+            'from': '-25.4283699,-49.2790737',
+            'km': 5.0})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for tourpoint in response.data:
+            self.assertEqual(tourpoint['category'], 'restaurant')
+            self.assertEqual(tourpoint['private'], False)

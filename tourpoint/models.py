@@ -15,6 +15,7 @@ class TourPoint(models.Model):
     A Tour Point created by users.
     """
     name = models.CharField(max_length=100,
+                            unique=True,
                             help_text='Name for the tour point')
     longitude = models.FloatField(help_text='longitude for the current position')
     latitude = models.FloatField(help_text='latitude for the current position')
@@ -37,4 +38,4 @@ class TourPoint(models.Model):
 
     @property
     def coordinates(self):
-        return Point(self.longitude, self.latitude)
+        return Point(self.latitude,self.longitude)
