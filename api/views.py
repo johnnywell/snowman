@@ -39,7 +39,10 @@ class TourPointViewSet(mixins.CreateModelMixin,
     permission_classes = (IsOwnerOrReadOnly,)
 
     def list(self, request, format=None):
-        queryset = TourPoint.objects.all()
+        if request.user.is_anonymous():
+            queryset = TourPoint.objects.filter(category='restaurant')
+        else:
+            queryset = TourPoint.objects.all()
         serializer = serializers.TourPointSerializer(
             queryset, many=True, context={'request': request})
         return Response(serializer.data)

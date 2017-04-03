@@ -74,3 +74,25 @@ class TourPointTests(APITestCase):
         self.client.force_login(user)
         response = self.client.delete(response.data['url'])
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_anonymous_user_can_see_only_restaurants(self):
+        TourPoint.objects.create(
+            name='Golden Dragon',
+            category='restaurant',
+            longitude=-20.234456,
+            latitude=-49.123890,
+            private=False,
+            owner=self.user
+        )
+        TourPoint.objects.create(
+            name='Tingui Park',
+            category='park',
+            longitude=-21.234456,
+            latitude=-48.123890,
+            private=False,
+            owner=self.user
+        )
+        self.client.logout()
+        response = self.client.get(reverse('tourpoint-list'))
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['category'], 'restaurant')
