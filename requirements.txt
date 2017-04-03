@@ -9,4 +9,4 @@ pygments
 coreapi
 drf-haystack
 geopy
-pysolr
+elasticsearch==2.4.1

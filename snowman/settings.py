@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_auth.registration',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
+    'haystack',
 
     #snowman apps
     'api',
@@ -148,3 +149,13 @@ STATIC_ROOT = "/var/www/snowman.com/static/"
 
 # ID for django.contrib.sites app
 SITE_ID = 1
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://search:9200',
+        'INDEX_NAME': 'snowman',
+    },
+}
+
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'

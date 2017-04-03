@@ -9,6 +9,8 @@ from api.views import FacebookLogin
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'tourpoints', views.TourPointViewSet)
+router.register(r'search', views.TourPointLocationGeoSearchViewSet, 
+                base_name='tourpoint-search')
 
 
 urlpatterns = [

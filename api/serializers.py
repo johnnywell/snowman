@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from tourpoint.models import TourPoint
+from drf_haystack.serializers import HaystackSerializer
+from api.search_indexes import TourPointLocationIndex
 
 
 class TourPointSerializer(serializers.HyperlinkedModelSerializer):
@@ -20,3 +22,20 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ('url', 'username', 'tourpoints')
+
+
+class DistanceSerializer(serializers.Serializer):
+    km = serializers.FloatField()
+    m = serializers.FloatField()
+
+
+class TourPointLocationSerializer(HaystackSerializer):
+    distance = serializers.SerializerMethodField()
+
+    class Meta:
+        index_classes = [TourPointLocationIndex]
+        fields = ['name', 'category', 'longitude', 'latitude']
+
+    def get_distance(self, obj):
+        if hasattr(obj, "distance"):
+            return DistanceSerializer(obj.distance, many=False).data

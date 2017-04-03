@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from haystack.utils.geo import Point
 
 
 CATEGORIES = (
@@ -33,3 +34,7 @@ class TourPoint(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def coordinates(self):
+        return Point(self.longitude, self.latitude)

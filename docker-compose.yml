@@ -9,16 +9,8 @@ services:
     environment: 
       POSTGRES_USER: snowman
       POSTGRES_PASSWORD: Q4mAELAAw1BhZA==
-  solr:
-    image: solr:latest
-    expose:
-      - 8983
-    volumes:
-      - "/opt/solr/server/solr/snowman"
-    entrypoint:
-      - docker-entrypoint.sh
-      - solr-precreate
-      - snowman
+  search:
+    image: elasticsearch:2.4
   web:
     build: .
     command: bash -c "pip install -U pip && pip install -Ur requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
@@ -29,7 +21,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - solr
+      - search
     links:
       - db
-      - solr
+      - search
