@@ -2,8 +2,10 @@ from django.contrib.auth import get_user_model
 from django.http import Http404
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from rest_auth.registration.views import SocialLoginView
-from rest_framework import viewsets, permissions, generics, views, status
+from rest_framework import (viewsets, permissions, generics, views, status, 
+    mixins)
 from rest_framework.response import Response
+from rest_framework.decorators import detail_route
 
 from tourpoint.models import TourPoint
 from api import serializers
@@ -27,7 +29,11 @@ class FacebookLogin(SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
 
 
-class TourPointViewSet(viewsets.ModelViewSet):
+class TourPointViewSet(mixins.CreateModelMixin, 
+                       mixins.RetrieveModelMixin, 
+                       mixins.DestroyModelMixin,
+                       mixins.ListModelMixin,
+                       viewsets.GenericViewSet):
     queryset = TourPoint.objects.filter(private=False)
     serializer_class = serializers.TourPointSerializer
     permission_classes = (IsOwnerOrReadOnly,)
@@ -50,7 +56,8 @@ class TourPointViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(mixins.RetrieveModelMixin, 
+                  viewsets.GenericViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -65,7 +72,19 @@ class UserViewSet(viewsets.ModelViewSet):
             raise Http404
 
     def retrieve(self, request, pk, format=None):
-        user = self.get_object(pk)
+        user = self.get_object()
         serializer = serializers.UserSerializer(user, context={'request': request})
         return Response(serializer.data)
 
+    @detail_route()
+    def tourpoints(self, request, pk=None):
+        tourpoints = self.get_object().tourpoints.filter(owner=request.user)
+        page = self.paginate_queryset(tourpoints)
+        if page is not None:
+            serializer = serializers.TourPointSerializer(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = serializers.TourPointSerializer(
+            tourpoints, many=True, context={'request': request})
+        return Response(serializer.data)

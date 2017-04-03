@@ -22,6 +22,7 @@ class TourPoint(models.Model):
         help_text='To make this a private tour point')
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        related_name='tourpoints',
         help_text="Who created this tour point.")
     category = models.CharField(choices=CATEGORIES,
                                 max_length=10,

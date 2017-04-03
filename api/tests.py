@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase, force_authenticate
 from allauth.socialaccount.models import SocialApp
-
+from tourpoint.models import TourPoint
 
 class FacebookAuthTests(APITestCase):
 
@@ -31,14 +31,20 @@ class TourPointTests(APITestCase):
         self.user = get_user_model().objects.create_user(
             username='testuser', password='ADeuWcg6BG0WHQ==')
         self.client.force_login(self.user)
-        self.data = {
+        
+
+    def test_user_can_create_tour_point(self):
+        data = {
             'name': 'Barigui Park',
             'category': 'park',
             'longitude': -25.4258213,
             'latitude': -49.3141436,
             'private': False
         }
-
-    def test_user_can_create_tour_point(self):
-        response = self.client.post(reverse('tourpoint-list'), self.data)
+        response = self.client.post(reverse('tourpoint-list'), data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_user_can_see_his_tourpoints(self):
+        response = self.client.get(
+            reverse('user-tourpoints', args=[self.user.pk]))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
