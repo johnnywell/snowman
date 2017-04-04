@@ -11,3 +11,5 @@ drf-haystack
 geopy
 elasticsearch==2.4.1
 factory_boy
+uwsgi
+pylibmc

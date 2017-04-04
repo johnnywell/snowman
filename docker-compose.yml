@@ -1,7 +1,21 @@
 version: '3'
 services:
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - static:/var/www/snowman.com/static/
+      - ./snowman.template:/etc/nginx/conf.d/snowman.template
+    command: /bin/bash -c "envsubst < /etc/nginx/conf.d/snowman.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    links:
+      - web
+    depends_on: 
+      - web
   db:
     image: postgres:latest
+    restart: always
     expose: 
       - 5432
     volumes:
@@ -11,17 +25,22 @@ services:
       POSTGRES_PASSWORD: Q4mAELAAw1BhZA==
   search:
     image: elasticsearch:2.4
+    restart: always
   web:
+    restart: always
     build: .
-    command: bash -c "pip install -U pip && pip install -Ur requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "pip install -U pip && pip install -Ur requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput && uwsgi --ini uwsgi.ini"
     volumes:
       - .:/code
-      - "/var/www/snowman.com/static/"
-    ports:
-      - "8000:8000"
+      - static:/var/www/snowman.com/static/
+    expose:
+      - 8000
     depends_on:
       - db
       - search
     links:
       - db
       - search
+      
+volumes:
+  static:

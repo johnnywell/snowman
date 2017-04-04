@@ -7,6 +7,8 @@ from rest_framework import viewsets, permissions, views, status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 from rest_framework.reverse import reverse
+from rest_framework_extensions.mixins import CacheResponseAndETAGMixin
+from rest_framework_extensions.cache.decorators import cache_response
 from drf_haystack.viewsets import HaystackGenericAPIView
 from drf_haystack.filters import HaystackGEOSpatialFilter, HaystackFilter
 from haystack.query import SQ
@@ -16,7 +18,7 @@ from api.permissions import IsOwnerOrReadOnly
 
 
 class APIRootView(views.APIView):
-
+    @cache_response()
     def get(self, request, *args, **kwargs):
         data = {
             'users': reverse(
@@ -52,8 +54,8 @@ class FacebookLogin(SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
 
 
-class TourPointViewSet(mixins.CreateModelMixin, 
-                       mixins.RetrieveModelMixin, 
+class TourPointViewSet(CacheResponseAndETAGMixin, mixins.CreateModelMixin,
+                       mixins.RetrieveModelMixin,
                        mixins.DestroyModelMixin,
                        mixins.ListModelMixin,
                        viewsets.GenericViewSet):
@@ -93,7 +95,7 @@ class TourPointViewSet(mixins.CreateModelMixin,
         return Response(status=status.HTTP_403_FORBIDDEN)
 
 
-class UserViewSet(mixins.RetrieveModelMixin,
+class UserViewSet(CacheResponseAndETAGMixin, mixins.RetrieveModelMixin,
                   mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     queryset = get_user_model().objects.all()
@@ -128,19 +130,22 @@ class UserViewSet(mixins.RetrieveModelMixin,
         return Response(serializer.data)
 
 
-class TourPointLocationGeoSearchViewSet(mixins.ListModelMixin, 
-                                        viewsets.ViewSetMixin, 
+class TourPointLocationGeoSearchViewSet(CacheResponseAndETAGMixin,
+                                        mixins.ListModelMixin,
+                                        viewsets.ViewSetMixin,
                                         HaystackGenericAPIView):
     index_models = [TourPoint]
     serializer_class = serializers.TourPointLocationSerializer
     filter_backends = [HaystackGEOSpatialFilter, HaystackFilter]
-    
+
     def list(self, request, *args, **kwargs):
         # if there is no 'from' nor 'km' query parameters return a empty search.
         if request.query_params.get('from') and request.query_params.get('km'):
             if request.user.is_anonymous():
                 # If a user is anonymous return only public restaurants
-                queryset = self.filter_queryset(self.get_queryset()).filter(category='restaurant', private='false')
+                queryset = self.filter_queryset(
+                    self.get_queryset()).filter(
+                        category='restaurant', private='false')
             else:
                 # If the user is authenticated show all public and his own tour points.
                 queryset = self.filter_queryset(self.get_queryset()).filter(SQ(SQ(SQ(private='true') & SQ(owner=request.user.username)) | SQ(private='false')))

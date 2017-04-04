@@ -158,3 +158,24 @@ HAYSTACK_CONNECTIONS = {
 }
 
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+REST_SESSION_LOGIN = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    )
+}
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache'
+    }
+}
+
+REST_FRAMEWORK_EXTENSIONS = {
+    'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15
+}
