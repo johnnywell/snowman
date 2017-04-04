@@ -6,8 +6,7 @@ FROM python:latest
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update
-RUN apt-get install -y apt-utils python3-dev libmemcached-dev zlib1g-dev libgeos-c1 memcached
-RUN update-rc.d memcached enable
+RUN apt-get install -y apt-utils python3-dev libmemcached-dev zlib1g-dev libgeos-c1
 
 # Copy all our files into the image.
 RUN mkdir /code

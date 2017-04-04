@@ -26,6 +26,9 @@ services:
   search:
     image: elasticsearch:2.4
     restart: always
+  cache:
+    image: memcached:latest
+    restart: always
   web:
     restart: always
     build: .
@@ -38,9 +41,11 @@ services:
     depends_on:
       - db
       - search
+      - cache
     links:
       - db
       - search
+      - cache
       
 volumes:
   static:

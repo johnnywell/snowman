@@ -15,8 +15,10 @@ router.register(r'search', views.TourPointLocationGeoSearchViewSet,
 
 
 urlpatterns = [
-    url(r'^', include(router.urls)),
-    url(r'^auth/', include('rest_auth.urls', namespace='auth')),
-    url(r'^auth/facebook/$', FacebookLogin.as_view(), name='facebook-login'),
-    url(r'^$', views.APIRootView.as_view(), name='api-root'),
+    url(r'^api/v1/', include([
+        url(r'^', include(router.urls)),
+        url(r'^auth/', include('rest_auth.urls', namespace='auth')),
+        url(r'^auth/facebook/$', FacebookLogin.as_view(), name='facebook-login'),
+        url(r'^$', views.APIRootView.as_view(), name='api-root'),
+    ]))
 ]

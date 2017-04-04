@@ -9,15 +9,23 @@ from rest_framework.decorators import detail_route
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import CacheResponseAndETAGMixin
 from rest_framework_extensions.cache.decorators import cache_response
+from rest_framework_extensions.etag.decorators import etag
 from drf_haystack.viewsets import HaystackGenericAPIView
 from drf_haystack.filters import HaystackGEOSpatialFilter, HaystackFilter
 from haystack.query import SQ
 from tourpoint.models import TourPoint
 from api import serializers
 from api.permissions import IsOwnerOrReadOnly
+from api.utils import (
+    default_object_cache_key_func,
+    default_list_cache_key_func,
+    default_object_etag_func,
+    default_list_etag_func,
+)
 
 
 class APIRootView(views.APIView):
+    @etag()
     @cache_response()
     def get(self, request, *args, **kwargs):
         data = {
@@ -63,6 +71,8 @@ class TourPointViewSet(CacheResponseAndETAGMixin, mixins.CreateModelMixin,
     serializer_class = serializers.TourPointSerializer
     permission_classes = (IsOwnerOrReadOnly,)
 
+    @etag(default_list_etag_func)
+    @cache_response(key_func=default_list_cache_key_func)
     def list(self, request, format=None):
         if request.user.is_anonymous():
             queryset = TourPoint.objects.filter(category='restaurant', private=False)
@@ -111,11 +121,15 @@ class UserViewSet(CacheResponseAndETAGMixin, mixins.RetrieveModelMixin,
         except get_user_model().DoesNotExist:
             raise Http404
 
+    @etag(default_object_etag_func)
+    @cache_response(key_func=default_object_cache_key_func)
     def retrieve(self, request, pk, format=None):
         user = self.get_object()
         serializer = serializers.UserSerializer(user, context={'request': request})
         return Response(serializer.data)
 
+    @etag(default_list_etag_func)
+    @cache_response(key_func=default_list_cache_key_func)
     @detail_route()
     def tourpoints(self, request, pk=None):
         tourpoints = self.get_object().tourpoints.filter(owner=request.user)
@@ -138,6 +152,8 @@ class TourPointLocationGeoSearchViewSet(CacheResponseAndETAGMixin,
     serializer_class = serializers.TourPointLocationSerializer
     filter_backends = [HaystackGEOSpatialFilter, HaystackFilter]
 
+    @etag(default_list_etag_func)
+    @cache_response(key_func=default_list_cache_key_func)
     def list(self, request, *args, **kwargs):
         # if there is no 'from' nor 'km' query parameters return a empty search.
         if request.query_params.get('from') and request.query_params.get('km'):

@@ -172,10 +172,16 @@ REST_FRAMEWORK = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache'
+        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+        'LOCATION': 'cache'
     }
 }
 
 REST_FRAMEWORK_EXTENSIONS = {
-    'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15
+    # 'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15,
+    # 'DEFAULT_KEY_CONSTRUCTOR_MEMOIZE_FOR_REQUEST': True,
+    'DEFAULT_OBJECT_ETAG_FUNC': 'api.utils.default_object_etag_func',
+    'DEFAULT_LIST_ETAG_FUNC': 'api.utils.default_list_etag_func',
+    'DEFAULT_OBJECT_CACHE_KEY_FUNC': 'api.utils.default_object_cache_key_func',
+    'DEFAULT_LIST_CACHE_KEY_FUNC': 'api.utils.default_list_cache_key_func',
 }
