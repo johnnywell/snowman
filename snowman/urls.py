@@ -20,5 +20,6 @@ from django.views.generic import RedirectView
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('api.router')),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^.*$', RedirectView.as_view(pattern_name='api-root', permanent=True), name='index')
 ]
