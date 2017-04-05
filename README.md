@@ -18,6 +18,12 @@ You will see a lot of things going crazy on the terminal, but once it stops thro
 
 Just access [http://localhost/](http://localhost/) and follow the instructions on the API resources page on how to use it.
 
+### Exploring the API with Postman
+
+You may import `tourpoints.postman_collection.json` from the project root directory into Postman and try the preconfigured requests.
+Each request has some description to aid perform the request, take a look at it.
+
+
 ### Facebook Authentication
 
 In order to use Facebook authentication you need a User Token provided on [Tool Access Token](https://developers.facebook.com/tools/accesstoken/) for the Facebook Application pointed on the instructions.

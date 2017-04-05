@@ -1,0 +1,176 @@
+{
+	"variables": [],
+	"info": {
+		"name": "tourpoints",
+		"_postman_id": "a21fbd06-2e61-72ed-8ae9-ef7990a94c5f",
+		"description": "Tour Points API requests.\n\ndemo user, for simple authentication.\n\nusername: snowman\npassword: snowmanlabs\n\nYou may also try open http://localhost direct on you browser and explore the browsable API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "API Index",
+			"request": {
+				"url": "localhost/api/v1/",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": "API index."
+			},
+			"response": []
+		},
+		{
+			"name": "List Tour Points",
+			"request": {
+				"url": "http://localhost/api/v1/tourpoints/",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": "Request a list of tourpoints.\n\nTry doing this request with and without authentication for different behaviours."
+			},
+			"response": []
+		},
+		{
+			"name": "Create Tour Point",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "snowman",
+						"password": "snowmanlabs",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "localhost/api/v1/tourpoints/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic c25vd21hbjpzbm93bWFubGFicw==",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Tangua Park\",\n    \"category\": \"park\",\n    \"longitude\": \"-25.4258213\",\n    \"latitude\": \"-49.3141436\",\n    \"private\": false\n\t\n}"
+				},
+				"description": "Create a new tourpoint"
+			},
+			"response": []
+		},
+		{
+			"name": "Users List",
+			"request": {
+				"url": "http://localhost/api/v1/users/",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": "Users List\n\nAuthentication required."
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve User Details",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "snowman",
+						"password": "snowmanlabs",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "http://localhost/api/v1/users/105/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic c25vd21hbjpzbm93bWFubGFicw==",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "Retrieve User\n\nAuthentication required."
+			},
+			"response": []
+		},
+		{
+			"name": "List User Tour Points",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "snowman",
+						"password": "snowmanlabs",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "http://localhost/api/v1/users/105/tourpoints/",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic c25vd21hbjpzbm93bWFubGFicw==",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "Lit all tourpoints for a given user.\n\nAuthentication required."
+			},
+			"response": []
+		},
+		{
+			"name": "Search Tour Point given a radius and postion",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "snowman",
+						"password": "snowmanlabs",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "http://localhost/api/v1/search/?km=10&from=-25.4230441,-49.3084172",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Basic c25vd21hbjpzbm93bWFubGFicw==",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "For this request you will need to pass some query parameters, like from and km\n\nfrom: receives comma separated longitude and latitude\nkm: a radius in kilomenter.\n\nYou may also test doing this request with and without authentication for different behaviours"
+			},
+			"response": []
+		},
+		{
+			"name": "Facebook Authentication",
+			"request": {
+				"url": "http://localhost/api/v1/auth/facebook/",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"access_token\": \"\"\n}"
+				},
+				"description": "In order to test this request, you need a User Token from Facebook, get one for the configured application on https://developers.facebook.com/tools/accesstoken/\n\nAfter getting this Token, just insert it on the body template for this request."
+			},
+			"response": []
+		}
+	]
+}
