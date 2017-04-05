@@ -1,6 +1,6 @@
 # Snow Man Labs Test - Python
 
-This is a description and guide on how to use my solution for this test. follow along to read the entire test description down bellow.
+This is a guide on how to use my solution for this test. follow along to read the entire test description down bellow.
 
 ## Getting Started
 
@@ -76,8 +76,9 @@ FACEBOOK SECRET = 62b1cd953125e512dc431e2677661d3e
 ### Deliverables
 
 See bellow the following deliverables:
-Source code in public git repository (Github or Bitbucket);
-Instructions for running and configuring the code.
+
+* Source code in public git repository (Github or Bitbucket);
+* Instructions for running and configuring the code.
 
 ### Evaluation
 

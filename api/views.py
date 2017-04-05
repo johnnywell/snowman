@@ -210,21 +210,21 @@ class UserViewSet(CacheResponseAndETAGMixin, mixins.RetrieveModelMixin,
                   mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     """
-    Returns only the currently authenticated user, for simplicity purpose.
+    The two following requests only returns the currently authenticated user, \
+    for simplicity purpose.
 
     ## Retrieve GET: /api/<version\>/users/<pk\>/
 
-    Returns the user authenticated on the session.
-
-    #### Authorization
-
-    * Authenticated only.
-
     ## List GET: /api/<version\>/users/
 
-    #### Authorization
+    ---
 
-    * Authenticated only.
+    ## List GET: /api/<version\>/users/<pk\>/tourpoints/
+
+    This resource returs a list with all tour points created by the user.
+
+    It is worth to notice that the user is reevaluated on the session, and
+    the resource only returns information for the authenticated user.
 
     """
     queryset = get_user_model().objects.all()
@@ -271,7 +271,7 @@ class TourPointLocationGeoSearchViewSet(CacheResponseAndETAGMixin,
     """
     ## Request GET: /api/<version\>/search/?from=<long\>,<lat\>&km=<ditance\>
 
-    This resource searchs for tour points in a radius givem a position.
+    This resource searchs for tour points in a radius given a position.
 
     **The query parameters must be as follow:**
 
@@ -295,7 +295,7 @@ class TourPointLocationGeoSearchViewSet(CacheResponseAndETAGMixin,
             }
         }
 
-    This resource also respcts the same rules for anonymous or authenticated \
+    This resource also follow the same rules for anonymous or authenticated \
     users as described in [tour points list](/api/v1/tourpoints/) resource
 
     If any query parameter is missing the response will be empty.
