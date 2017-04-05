@@ -169,13 +169,16 @@ REST_FRAMEWORK = {
     )
 }
 
+CACHES = {'default': {}}
 
-CACHES = {
-    'default': {
+if DEBUG:
+    CACHES['default'] = {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+else:
+    CACHES['default'] = {
         'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
-        'LOCATION': 'cache'
-    }
-}
+        'LOCATION': 'cache'}
+
 
 REST_FRAMEWORK_EXTENSIONS = {
     # 'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60 * 15,

@@ -25,6 +25,26 @@ from api.utils import (
 
 
 class APIRootView(views.APIView):
+    """
+    To explore this API you may login using the button on the top of this page.
+
+    **The default user is:**
+
+        username: snowman
+        password: snowmanlabs
+
+    For details about other resources and how to use them folow the links below.
+
+    ## Request
+
+
+    ### List GET: /api/<version\>/
+
+
+    ## Response
+
+    Returns a index with the main resources for this API.
+    """
     @etag()
     @cache_response()
     def get(self, request, *args, **kwargs):
@@ -47,17 +67,34 @@ class APIRootView(views.APIView):
 
 class FacebookLogin(SocialLoginView):
     """
-    post:
     Check a given Facebook Acess Token and return a new Key if the credentials\
     are valid and authenticated.
 
-    Use this key to authenticate the user from now on.
+    Use this key to authenticate the user from now on by setting the request \
+    header as follow:
 
-    If the user does not exist it is created.
+    Authentication: Token 2d9b3a087acd31c4a36e016fff72869582590166
 
-    **Accept**: access_token
+    If the user does not exist it is created and added to the session. You may
+    also take advantage of cookies to refer to the given session id, so you \
+    don't need to pass the Token on further requests.
 
-    **Return**: key
+    ## Request
+
+    ### Create POST: /api/<version\>/auth/facebook/
+
+        {
+            'access_token':'EAAED1a2VBqYBAEFHGKsYUH9jzm4KsfZAK54y5A5DZB5IMxKXDa
+                KOmi0mZAGRFZAGf9ZBLHUenOyDm8tVJdt133YwwJsTz3ttu8b2pOAZAdL82tgNb
+                TTAzGh1ROrgX9XasBZBIpLJERP5pns2MZAa3AIUZBmlfDOhTmeQCoiWoJo51aZA
+                nWjH3nEdk8MfYBwYerzX0ZD'
+        }
+
+    ## Response
+
+        {
+            'key': '2d9b3a087acd31c4a36e016fff72869582590166'
+        }
     """
     adapter_class = FacebookOAuth2Adapter
 
@@ -67,6 +104,67 @@ class TourPointViewSet(CacheResponseAndETAGMixin, mixins.CreateModelMixin,
                        mixins.DestroyModelMixin,
                        mixins.ListModelMixin,
                        viewsets.GenericViewSet):
+    """
+    ## Requests
+
+    ### List GET: /api/<version\>/tourpoints/
+
+    #### Response
+
+    If the user is authenticated returns a list of public and his own private \
+    tour points from every category.
+
+    If the user is anonymous returns only public restaurants.
+
+
+    ### Retrieve GET: /api/<version\>/tourpoints/<pk\>/
+
+    #### Response
+
+    Returns a tour point given its id.
+
+    ### Create POST: '/api/<version\>/tourpoints/<pk\>/'
+
+    To create a new tour point use this resource ass follow.
+
+        {
+            'name': 'Barigui Park',
+            'category': 'park',
+            'private': false,
+            'longitude': -25.4230441,
+            'latitude': -49.3084172
+        }
+
+    The user will be determined by the request and set as owner for this tour \
+    point.
+
+    Only authenticated users can create tour points.
+
+    #### Response
+
+    The response contais the data provided and also links for this same \
+    resource and its owner as well.
+
+        {
+            "url": "http://localhost/api/v1/tourpoints/1/",
+            "name": "snowman",
+            "category": "park",
+            "owner": "http://localhost/api/v1/users/1/",
+            "longitude": -25.4230441,
+            "latitude": -49.3084172,
+            "private": false
+        }
+
+    ### Destroy DELETE: /api/<version\>/tourpoints/<pk\>/
+
+    Authenticated users may also delete his own tour points.
+
+
+    #### Response
+
+    The response for a successful destroy request is a 204 NO CONTENT code, \
+    indicating this tour point is no more.
+    """
     queryset = TourPoint.objects.filter(private=False)
     serializer_class = serializers.TourPointSerializer
     permission_classes = (IsOwnerOrReadOnly,)
@@ -75,9 +173,12 @@ class TourPointViewSet(CacheResponseAndETAGMixin, mixins.CreateModelMixin,
     @cache_response(key_func=default_list_cache_key_func)
     def list(self, request, format=None):
         if request.user.is_anonymous():
-            queryset = TourPoint.objects.filter(category='restaurant', private=False)
+            queryset = TourPoint.objects.filter(
+                category='restaurant', private=False)
         else:
-            queryset = TourPoint.objects.filter(Q(Q(Q(private=True) & Q(owner=request.user)) | Q(private=False)))
+            queryset = TourPoint.objects.filter(
+                Q(Q(Q(private=True) & Q(
+                    owner=request.user)) | Q(private=False)))
         serializer = serializers.TourPointSerializer(
             queryset, many=True, context={'request': request})
         return Response(serializer.data)
@@ -108,6 +209,24 @@ class TourPointViewSet(CacheResponseAndETAGMixin, mixins.CreateModelMixin,
 class UserViewSet(CacheResponseAndETAGMixin, mixins.RetrieveModelMixin,
                   mixins.ListModelMixin,
                   viewsets.GenericViewSet):
+    """
+    Returns only the currently authenticated user, for simplicity purpose.
+
+    ## Retrieve GET: /api/<version\>/users/<pk\>/
+
+    Returns the user authenticated on the session.
+
+    #### Authorization
+
+    * Authenticated only.
+
+    ## List GET: /api/<version\>/users/
+
+    #### Authorization
+
+    * Authenticated only.
+
+    """
     queryset = get_user_model().objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -125,7 +244,8 @@ class UserViewSet(CacheResponseAndETAGMixin, mixins.RetrieveModelMixin,
     @cache_response(key_func=default_object_cache_key_func)
     def retrieve(self, request, pk, format=None):
         user = self.get_object()
-        serializer = serializers.UserSerializer(user, context={'request': request})
+        serializer = serializers.UserSerializer(
+            user, context={'request': request})
         return Response(serializer.data)
 
     @etag(default_list_etag_func)
@@ -148,6 +268,38 @@ class TourPointLocationGeoSearchViewSet(CacheResponseAndETAGMixin,
                                         mixins.ListModelMixin,
                                         viewsets.ViewSetMixin,
                                         HaystackGenericAPIView):
+    """
+    ## Request GET: /api/<version\>/search/?from=<long\>,<lat\>&km=<ditance\>
+
+    This resource searchs for tour points in a radius givem a position.
+
+    **The query parameters must be as follow:**
+
+        from=-25.4230441,-49.3084172    # comma separated longitude and latitude 
+        km=5                            # a radius distance in kilometers
+
+    ### Resonse
+
+    The response will be a list of tour point objects in the same format as \
+    follow.
+
+        {
+            "name": "Melissa Wang",
+            "category": "park",
+            "private": true,
+            "longitude": -25.4230441,
+            "latitude": -49.3084172,
+            "owner": "snowman",
+            "distance": {
+                "km": 0.0
+            }
+        }
+
+    This resource also respcts the same rules for anonymous or authenticated \
+    users as described in [tour points list](/api/v1/tourpoints/) resource
+
+    If any query parameter is missing the response will be empty.
+    """
     index_models = [TourPoint]
     serializer_class = serializers.TourPointLocationSerializer
     filter_backends = [HaystackGEOSpatialFilter, HaystackFilter]
@@ -163,8 +315,13 @@ class TourPointLocationGeoSearchViewSet(CacheResponseAndETAGMixin,
                     self.get_queryset()).filter(
                         category='restaurant', private='false')
             else:
-                # If the user is authenticated show all public and his own tour points.
-                queryset = self.filter_queryset(self.get_queryset()).filter(SQ(SQ(SQ(private='true') & SQ(owner=request.user.username)) | SQ(private='false')))
+                # If the user is authenticated show all public and his own tour
+                # points.
+                queryset = self.filter_queryset(
+                    self.get_queryset()).filter(
+                        SQ(SQ(SQ(private='true') & SQ(
+                            owner=request.user.username)) | SQ(
+                                private='false')))
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
