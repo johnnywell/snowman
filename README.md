@@ -12,11 +12,17 @@ Clone the repository and from within the root directory run:
 
 It will download and build the required Docker Images, then it will set up the container for the application based on the Dockerfile contained in the same directory.
 
-The first time it builds the entire stack may takes a while, so be patient.
+The first time it builds the entire stack may take a while, so be patient.
 
 You will see a lot of things going crazy on the terminal, but once it stops throwing stuff on you we are set.
 
 Just access [http://localhost/](http://localhost/) and follow the instructions on the API resources page on how to use it.
+
+### Facebook Authentication
+
+In order to use Facebook authentication you need a User Token provided on [Tool Access Token](https://developers.facebook.com/tools/accesstoken/) for the Facebook Application pointed on the instructions.
+
+For how to change the Facebook Token for an API Token, take a look at [/api/v1/auth/facebook/](http://localhost/api/v1/auth/facebook/) after running the applicaiton.
 
 ### Using Cache
 

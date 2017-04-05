@@ -71,9 +71,9 @@ class FacebookLogin(SocialLoginView):
     are valid and authenticated.
 
     Use this key to authenticate the user from now on by setting the request \
-    header as follow:
+    headers as follow:
 
-    Authentication: Token 2d9b3a087acd31c4a36e016fff72869582590166
+    **Authentication: Token 2d9b3a087acd31c4a36e016fff72869582590166**
 
     If the user does not exist it is created and added to the session. You may
     also take advantage of cookies to refer to the given session id, so you \
