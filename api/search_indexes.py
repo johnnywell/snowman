@@ -3,6 +3,10 @@ from tourpoint.models import TourPoint
 
 
 class TourPointLocationIndex(indexes.SearchIndex, indexes.Indexable):
+    """
+    Index the TourPoint objects, defines which attributes will be indexed, 
+    so we can serach for them.
+    """
     text = indexes.CharField(document=True)
     name = indexes.CharField(model_attr='name')
     category = indexes.CharField(model_attr='category')

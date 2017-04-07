@@ -1,15 +1,15 @@
 from django.contrib.auth import get_user_model
-from django.http import Http404
 from django.db.models import Q
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from rest_auth.registration.views import SocialLoginView
-from rest_framework import viewsets, permissions, views, status, mixins
+from rest_framework import viewsets, permissions, views, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import CacheResponseAndETAGMixin
 from rest_framework_extensions.cache.decorators import cache_response
 from rest_framework_extensions.etag.decorators import etag
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from drf_haystack.viewsets import HaystackGenericAPIView
 from drf_haystack.filters import HaystackGEOSpatialFilter, HaystackFilter
 from haystack.query import SQ
@@ -165,45 +165,30 @@ class TourPointViewSet(CacheResponseAndETAGMixin, mixins.CreateModelMixin,
     The response for a successful destroy request is a 204 NO CONTENT code, \
     indicating this tour point is no more.
     """
-    queryset = TourPoint.objects.filter(private=False)
+    queryset = TourPoint.objects.all()
     serializer_class = serializers.TourPointSerializer
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly)
 
-    @etag(default_list_etag_func)
-    @cache_response(key_func=default_list_cache_key_func)
-    def list(self, request, format=None):
-        if request.user.is_anonymous():
-            queryset = TourPoint.objects.filter(
+    def get_queryset(self):
+        """
+        If a user is anonymous returns only, public restrautants, otherwise
+        returns all public tour points and his own private ones.
+        """
+        if self.request.user.is_anonymous():
+            queryset = self.queryset.filter(
                 category='restaurant', private=False)
         else:
-            queryset = TourPoint.objects.filter(
+            queryset = self.queryset.filter(
                 Q(Q(Q(private=True) & Q(
-                    owner=request.user)) | Q(private=False)))
-        serializer = serializers.TourPointSerializer(
-            queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+                    owner=self.request.user)) | Q(private=False)))
+        return queryset
 
-    def create(self, request, format=None):
-        if request.user.is_anonymous():
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = serializers.TourPointSerializer(
-            data=request.data, context={'request': request})
-        if serializer.is_valid():
-            # save the user from session as owner for this tour point
-            serializer.validated_data['owner'] = request.user
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, *args, **kwargs):
+    def perform_create(self, serializer):
         """
-        Allow users to delete their own tour points
+        Override the super method to add the request user as the owner.
         """
-        instance = self.get_object()
-        if instance.owner == request.user:
-            self.perform_destroy(instance)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+        serializer.validated_data['owner'] = self.request.user
+        super().perform_create(serializer)
 
 
 class UserViewSet(CacheResponseAndETAGMixin, mixins.RetrieveModelMixin,
@@ -232,27 +217,23 @@ class UserViewSet(CacheResponseAndETAGMixin, mixins.RetrieveModelMixin,
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
+        """
+        Returns only the authenticated user, since we don't need users to
+        interact with other users.
+        """
         return get_user_model().objects.filter(id=self.request.user.pk)
-
-    def get_object(self):
-        try:
-            return get_user_model().objects.get(id=self.request.user.pk)
-        except get_user_model().DoesNotExist:
-            raise Http404
-
-    @etag(default_object_etag_func)
-    @cache_response(key_func=default_object_cache_key_func)
-    def retrieve(self, request, pk, format=None):
-        user = self.get_object()
-        serializer = serializers.UserSerializer(
-            user, context={'request': request})
-        return Response(serializer.data)
 
     @etag(default_list_etag_func)
     @cache_response(key_func=default_list_cache_key_func)
     @detail_route()
     def tourpoints(self, request, pk=None):
-        tourpoints = self.get_object().tourpoints.filter(owner=request.user)
+        """
+        Custom action to list a user tour points.
+        Since we filter the queryset for the request user it only returns the
+        tour points for that user, but it can be easily changed to return a
+        list for a given user if we need to.
+        """
+        tourpoints = self.get_object().tourpoints.all()
         page = self.paginate_queryset(tourpoints)
         if page is not None:
             serializer = serializers.TourPointSerializer(
@@ -304,29 +285,31 @@ class TourPointLocationGeoSearchViewSet(CacheResponseAndETAGMixin,
     serializer_class = serializers.TourPointLocationSerializer
     filter_backends = [HaystackGEOSpatialFilter, HaystackFilter]
 
-    @etag(default_list_etag_func)
-    @cache_response(key_func=default_list_cache_key_func)
-    def list(self, request, *args, **kwargs):
-        # if there is no 'from' nor 'km' query parameters return a empty search.
-        if request.query_params.get('from') and request.query_params.get('km'):
-            if request.user.is_anonymous():
-                # If a user is anonymous return only public restaurants
-                queryset = self.filter_queryset(
-                    self.get_queryset()).filter(
-                        category='restaurant', private='false')
-            else:
-                # If the user is authenticated show all public and his own tour
-                # points.
-                queryset = self.filter_queryset(
-                    self.get_queryset()).filter(
-                        SQ(SQ(SQ(private='true') & SQ(
-                            owner=request.user.username)) | SQ(
-                                private='false')))
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
+    def filter_queryset(self, queryset):
+        """
+        Override super filter_queryset to apply our bussiness logic. Since it
+        is a public resource we don't need further permissions, just valitate
+        if the user is authenticated or not.
+        """
+        # First validate the query params, so whe are sure they are provided.
+        params_serializer = serializers.SearchQueryParamsSerializer(
+            data=self.request.query_params)
+        params_serializer.is_valid(raise_exception=True)
 
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        return Response([])
+        # apply the super filter to the queryset, so now we have only objects
+        # respecting the radius search.
+        queryset = super().filter_queryset(queryset)
+
+        # If a user is anonymous return only public restaurants
+        if self.request.user.is_anonymous():
+                queryset = queryset.filter(
+                        category='restaurant', private='false')
+        else:
+            # If the user is authenticated show all public and his own tour
+            # points.
+            queryset = queryset.filter(
+                    SQ(SQ(SQ(private='true') & SQ(
+                        owner=self.request.user.username)) | SQ(
+                            private='false')))
+        return queryset
+

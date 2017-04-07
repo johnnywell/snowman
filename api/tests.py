@@ -1,11 +1,15 @@
 from django.urls import reverse
-from django.contrib.sites.models import Site
+# from django.contrib.sites.models import Site
 from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.test import APITestCase, force_authenticate
-from allauth.socialaccount.models import SocialApp
-from tourpoint.models import TourPoint
+from rest_framework.test import APITestCase
+# from allauth.socialaccount.models import SocialApp
 from api import factories
+
+
+# Test ommited since we can't have a new User Token every time and this leads
+# to a test error whe the token expires. I'll keep the code here though as 
+# reference
 
 # class FacebookAuthTests(APITestCase):
 
@@ -47,10 +51,10 @@ class TourPointTests(APITestCase):
     def test_user_can_see_his_tourpoints(self):
         user = factories.UserFactory.create()
         for i in range(10):
-            factories.TourPointFactory(owner=user)
+            factories.TourPointFactory.create(owner=user)
         self.client.force_login(user)
         response = self.client.get(
-            reverse('user-tourpoints', args=[self.user.pk]))
+            reverse('user-tourpoints', args=[user.pk]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 10)
 

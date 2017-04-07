@@ -15,6 +15,9 @@ from rest_framework_extensions.key_constructor.bits import (
 
 
 class UpdatedAtKeyBit(KeyBitBase):
+    """
+    Custom key bit to look for api_updated_at_timestamp key.
+    """
     def get_data(self, **kwargs):
         key = 'api_updated_at_timestamp'
         value = cache.get(key, None)
@@ -25,12 +28,18 @@ class UpdatedAtKeyBit(KeyBitBase):
 
 
 class CustomObjectKeyConstructor(DefaultKeyConstructor):
+    """
+    Used to compute cache key for a single object.
+    """
     retrieve_sql = RetrieveSqlQueryKeyBit()
     updated_at = UpdatedAtKeyBit()
     user = UserKeyBit()
 
 
 class CustomListKeyConstructor(DefaultKeyConstructor):
+    """
+    Used to compute cache key for a list of objects.
+    """
     list_sql = ListSqlQueryKeyBit()
     pagination = PaginationKeyBit()
     updated_at = UpdatedAtKeyBit()
@@ -39,6 +48,10 @@ class CustomListKeyConstructor(DefaultKeyConstructor):
 
 
 def change_api_updated_at(sender=None, instance=None, *args, **kwargs):
+    """
+    Set a new timestamp for the cache.
+    """
+
     cache.set('api_updated_at_timestamp', datetime.datetime.utcnow())
 
 
