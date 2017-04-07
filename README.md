@@ -43,9 +43,9 @@ To run the tests you need to attach you shell session to the docker container na
 1. Take the container id
 
         docker ps
-    Will show the running containers.
+    Will show the running containers, copy the snowman_web container ID
 
-2. Copy the snowman_web container ID.
+2. Attach your terminal to the container.
 
         docker exec -it 3fa9e1ac602a /bin/bash
     This will attach your terminal to the container, remeber to substitute the ID for the one you got previously.
