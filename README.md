@@ -36,6 +36,24 @@ Since the application is ment to run in development, the cache is disabled by de
 
 The uWSGI server is set to hot reload the application when something changes, but if you get stuck just stop the compose command and run it again, it should be faster this time.
 
+### Running Tests
+
+To run the tests you need to attach you shell session to the docker container named snowman_web.
+
+1. Take the container id
+
+        docker ps
+    Will show the running containers.
+
+2. Copy the snowman_web container ID.
+
+        docker exec -it 3fa9e1ac602a /bin/bash
+    This will attach your terminal to the container, remeber to substitute the ID for the one you got previously.
+
+3. Once you are into the container run the tests.
+
+        python manage.py test
+
 ---
 
 ## Test Description
